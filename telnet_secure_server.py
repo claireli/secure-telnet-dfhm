@@ -45,6 +45,32 @@ class Telnet_s_server:
 
     return msg
 
+  def encrypt(self, msg):
+  
+    # In order to use blowfish encryption, the message needs to be in a multiple of     8
+    if len(msg)<8:
+      for x in range(8-len(msg)):
+        msg+=" "
+    else:
+      for x in range(8-(len(msg)%8)):
+        msg+=" "
+  
+    msg=msg.encode()
+    #print("msg.encode()", msg, type(msg))
+    block=bytearray(msg)
+    #print("byte(array)", block, type(block))
+    #cipher_little = blowfish.Cipher(b"my key", byte_order = "little")
+    #print("encrypt_ecb()", self.cipher.encrypt_ecb(block), type(self.cipher.encrypt    _ecb(block)))
+    data_encrypted = b"".join(self.cipher.encrypt_ecb(block))
+    #print("data_encrypted", data_encrypted, type(data_encrypted))
+  
+    #data_decrypted = b"".join(self
+    #.cipher.decrypt_ecb(b"".join(self.cipher.encrypt_ecb(block))))
+    #data_decrypted = b"".join(self.cipher.decrypt_ecb(data_encrypted))
+    #print("data_decrypted", data_decrypted, type(data_decrypted))
+  
+    return data_encrypted
+
   def setup(self):
     # this is a socket object, AF_INET is address family for IPv4, SOCK_STREAM is mechanism for 2 way, ordered, unduplicated byte stream
     self.sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
@@ -107,6 +133,10 @@ class Telnet_s_server:
       else:
         self.remove_thread(client, client_ip[0])
         alive=False
+      send_to_client = input('telnet secure> ')
+      send_to_client = str(self.encrypt(send_to_client)) + "\n"
+      #client.send(str(send_to_client).encode())
+      client.send(send_to_client.encode())
     exit()
 
   def remove_thread(self, client, client_ip):
