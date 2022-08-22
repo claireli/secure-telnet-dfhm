@@ -1,0 +1,2 @@
+Example of compiling my C lib into a shared lib file
+cc -fPIC -shared -o libsum.so sum.c
