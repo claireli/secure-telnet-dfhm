@@ -2,6 +2,8 @@ import telnetlib
 import sys
 import select
 import os
+from dfhm.dfhm import DFHM
+
 
 class TelnetSecureClient:
 
@@ -9,10 +11,34 @@ class TelnetSecureClient:
     self.d_host = host
     self.d_port = port
     self.timeout = 30
+    self.dfhm = self.dfhm_setup(private_key)
 
   def terminate_connection(self):
     print('Disconnecting from TCP tunnel. Destroying session key.')
     sys.exit(0)
+
+  def dfhm_setup(self, private_key):
+    # TODO: check if private_key file exists
+    try:
+        with open(private_key, 'r') as key:
+            return DFHM(key.read())
+    except Exception as msg:
+        print(msg)
+        sys.exit(0)
+
+  def encrypt(self, message):
+    # In order to use blowfish encryption, the message needs to be in a multiple of 8
+    if len(message)<8:
+      for x in range(8-len(message)):
+        message+=" "
+    else:
+      for x in range(8-(len(message)%8)):
+        message+=" "
+
+    print(message, type(message))
+    data_encrypted = self.dfhm.encrypt(message)
+
+    return data_encrypted
 
   def connect(self):
     try:
@@ -48,7 +74,9 @@ class TelnetSecureClient:
                 alive = False
               else:
                 #send_to_remote = self.encrypt(send_to_remote)
-                session.write(send_to_remote.encode())
+                print(self.encrypt(send_to_remote))
+                session.write(self.encrypt(send_to_remote)+EOT)
+                #session.write(b'claire here'+EOT)
                 # <bytes>
 
                 #print("\n[" + self.d_host + "]: " + message.decode()[2:-1])

@@ -1,1 +1,2 @@
-netifaces-0.11.0
+netifaces==0.11.0
+blowfish==0.6.1
